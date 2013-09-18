@@ -8,6 +8,54 @@ Simply install the gem:
 
     $ gem install knife-select
 
+## Setup
+
+In order to use knife-select you need to first configure a select\_list.rb file to hold the
+configuration details of the servers that you wish to connect to.  The file is eval'ed and must
+result in the return of a hash, as interpreted by the Hash.try\_convert method.
+
+The expected hash structure is alias as key name which should contain a hash of attributes for
+that key.  All attributes for a key are optional in the file, but after processing of the
+select\_list.rb and select\_list\_overrides.rb files the url key must be set to make the alias of
+any use.
+
+```text
+select\_list[<alias>] = {
+      'url' => "chef server url",
+      'user' => "username to connect as",
+      'key' => "key to use for authentication as <user>",
+      'validation_user' => "validation user for the server",
+      'validation_key' => "key to use for authentication as <validation_user>",
+    }
+```
+
+Typically the select\_list.rb file would be placed into source control and shared amongst a team,
+and as such would have only the generically applicable settings of 'url', 'validation_user' and
+'validation_key'.  Then individual users would provide overrides within their own local
+select\_list\_overrides.rb file for 'user' and 'key' as necessary.
+
+The knife.rb can be used to provide defaults for values not specified, as shown in the example
+provided within this code, e.g.:
+
+```ruby
+    # For Private Chef - we have many orgs with one key
+    # https://<server>/organizations/<org>
+    split_url = url.split("/")
+    key_part=select_name
+    if split_url.include? "organizations"
+        puts "Private Chef key naming rules being used" if debug
+        # It is a private chef server - use server instead of select_name for key
+        # [0]=https:/[1]=/[2]=<server>/[3]=organizations/[4]=<org>
+        key_part=split_url[2]
+        key = "#{config_dir}/#{user}.#{key_part}.pem"
+    end
+    if not chef_server["user"].nil?
+        user = chef_server["user"]
+        # Update the default key value
+        key = "#{config_dir}/#{user}.#{key_part}.pem"
+    end
+```
+
 ## Usage
 
 Commands take the form of:

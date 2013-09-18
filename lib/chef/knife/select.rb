@@ -9,15 +9,15 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# 
+#
 # Author: Jon-Paul Sullivan <jonpaul.sullivan@hp.com>
 #
 
@@ -29,7 +29,7 @@ module HPCS
 
   def read_select_list
     # Read the server list from the server file
-    if Hash.respond_to? "try_convert"
+    if Hash.respond_to? :try_convert
       server_list = Hash[Hash.try_convert(eval(File.new(SELECT_LIST).read())).sort]
     else
       server_list = Hash[(eval(File.new(SELECT_LIST).read())).sort]
@@ -63,8 +63,8 @@ module HPCS
         list = HPCS::SelectList.new
         list.config[:full] = config[:full]
         list.config[:format] = config[:format]
-        if name_args.size != 0
-          ui.error "Please choose from the following list of chef server aliases:"
+        if name_args.any?
+          ui.error "Please choose one alias from the following list of chef server aliases:"
           ret_val = 1
         else
           ret_val = 0
@@ -100,7 +100,7 @@ module HPCS
     def run
       # Read in the list of all of the servers
       alias_list = HPCS::read_select_list
-      if not SELECTED.nil? and not SELECTED.empty?
+      if SELECTED.kind_of? String and not SELECTED.empty?
         ui.msg "Currently selected server is #{SELECTED}"
         if not alias_list.has_key? SELECTED
           ui.warn "Chosen server not found in server list"
@@ -152,28 +152,28 @@ module HPCS
         ui.confirm "The alias #{new_alias} already exists, replace it?"
       end
       # Retrieve all the information that we need
-      if config[:user].nil? or config[:user].empty?
+      if not config[:user].kind_of? String or config[:user].empty?
         default_user = ENV['OPSCODE_USER'] || ENV['USER']
         config[:user] = ui.ask_question "Username?", {:default => default_user}
         alias_hash["user"] = config[:user]
       end
-      if config[:server_url].nil? or config[:server_url].empty?
+      if not config[:server_url].kind_of? String or config[:server_url].empty?
         default_server = "http://#{new_alias}:4000"
         config[:server_url] = ui.ask_question "URL?", {:default => default_server}
         alias_hash["server_url"] = config[:server_url]
       end
-      if config[:key].nil? or config[:key].empty?
+      if not config[:key].kind_of? String or config[:key].empty?
         default_key = "#{::Chef::Knife::chef_config_dir}/#{config[:user]}.#{new_alias}.pem"
         config[:key] = ui.ask_question "Key filename?", {:default => default_key}
         alias_hash["key"] = config[:key]
       end
-      if config[:validation_user].nil? or config[:validation_user].empty?
+      if not config[:validation_user].kind_of? String or config[:validation_user].empty?
         default_validation_user = "#{new_alias}-validator"
         config[:validation_user] = ui.ask_question "Validation User?",
                       {:default => default_validation_user}
         alias_hash["validation_user"] = config[:validation_user]
       end
-      if config[:validation_key].nil? or config[:validation_key].empty?
+      if not config[:validation_key].kind_of? String or config[:validation_key].empty?
         default_validation_key =
                   "#{::Chef::Knife::chef_config_dir}/#{new_alias}-validator.pem"
         config[:validation_key] = ui.ask_question "Validation Key filename?",
